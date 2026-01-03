@@ -26,6 +26,7 @@ export const AdvocatePortal = () => {
       } finally {
         setIsLoading(false);
       }
+      return null;
     };
 
     fetchFinancialData();
