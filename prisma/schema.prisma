@@ -1,0 +1,126 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./wakili.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ENUMS
+
+enum Role {
+  ADVOCATE
+  SECRETARY
+}
+
+enum CaseType {
+  CIVIL
+  CRIMINAL
+  CONVEYANCING
+}
+
+enum CaseStatus {
+  OPEN
+  CLOSED
+  PENDING
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  OVERDUE
+}
+
+enum PaymentMethod {
+  MPESA
+  CASH
+  CHEQUE
+}
+
+// MODELS
+
+model User {
+  id            String   @id @default(cuid())
+  username      String   @unique
+  password_hash String
+  role          Role
+  created_at    DateTime @default(now())
+}
+
+model Client {
+  id           String        @id @default(cuid())
+  name         String
+  phone        String        @unique
+  email        String?       @unique
+  notes        String?
+  created_at   DateTime      @default(now())
+  cases        Case[]
+  appointments Appointment[]
+}
+
+model Case {
+  id          String        @id @default(cuid())
+  case_number String        @unique
+  title       String
+  case_type   CaseType
+  status      CaseStatus    @default(PENDING)
+  filing_date DateTime
+  client_id   String
+  client      Client        @relation(fields: [client_id], references: [id])
+  created_at  DateTime      @default(now())
+  invoices    Invoice[]
+  Appointment Appointment[]
+}
+
+model Appointment {
+  id         String            @id @default(cuid())
+  datetime   DateTime
+  reason     String
+  status     AppointmentStatus @default(PENDING)
+  client_id  String
+  client     Client            @relation(fields: [client_id], references: [id])
+  case_id    String?
+  case       Case?             @relation(fields: [case_id], references: [id])
+  created_at DateTime          @default(now())
+}
+
+model Invoice {
+  id           String        @id @default(cuid())
+  total_amount Float
+  balance_due  Float
+  status       InvoiceStatus @default(PENDING)
+  due_date     DateTime
+  case_id      String
+  case         Case          @relation(fields: [case_id], references: [id])
+  created_at   DateTime      @default(now())
+  items        InvoiceItem[]
+  payments     Payment[]
+}
+
+model InvoiceItem {
+  id          String  @id @default(cuid())
+  description String
+  amount      Float
+  invoice_id  String
+  invoice     Invoice @relation(fields: [invoice_id], references: [id])
+}
+
+model Payment {
+  id                    String        @id @default(cuid())
+  amount                Float
+  method                PaymentMethod
+  transaction_reference String? // For M-Pesa, etc.
+  date_recorded         DateTime      @default(now())
+  invoice_id            String
+  invoice               Invoice       @relation(fields: [invoice_id], references: [id])
+}
