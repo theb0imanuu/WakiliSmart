@@ -1,23 +1,35 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import loginImg from '../assets/login.webp';
 import logoImg from '../assets/logo.svg';
+import api from '../utils/api';
 
 const StaffLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Add authentication logic here later
-    alert("Login functionality coming soon!");
+    try {
+      const response = await api.post('/auth/login', { username: email, password });
+      const { access_token, role, username } = response.data;
+      localStorage.setItem('token', access_token);
+      localStorage.setItem('role', role);
+      localStorage.setItem('username', username);
+      navigate('/dashboard');
+    } catch (error) {
+      alert('Login failed: ' + (error.response?.data?.message || error.message));
+    }
   };
 
   return (
     <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white">
-      
+
       {/* Left Side: Visual / Brand (Visible on Desktop) */}
       <div className="hidden md:flex md:w-1/2 lg:w-5/12 bg-primary/5 relative flex-col justify-between p-12 border-r border-gray-200 dark:border-gray-800">
-        
+
         {/* Brand Logo Top Left */}
         <Link to="/" className="flex items-center gap-2">
         <img src={logoImg} alt="WakiliSmart" className="h-10 w-auto" />
@@ -29,8 +41,8 @@ const StaffLogin = () => {
           <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden shadow-2xl">
             <div className="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent z-10"></div>
             {/* Using your login.webp image here */}
-            <div 
-              className="w-full h-full bg-center bg-cover" 
+            <div
+              className="w-full h-full bg-center bg-cover"
               style={{ backgroundImage: `url(${loginImg})` }}
             ></div>
             <div className="absolute bottom-0 left-0 p-8 z-20 text-white">
@@ -49,7 +61,7 @@ const StaffLogin = () => {
 
       {/* Right Side: Login Form */}
       <div className="flex-1 flex flex-col relative bg-background-light dark:bg-background-dark overflow-y-auto">
-        
+
         {/* Mobile Header (Visible only on small screens) */}
         <div className="md:hidden flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
           <Link to="/" className="flex items-center gap-2 text-primary">
@@ -73,7 +85,7 @@ const StaffLogin = () => {
         {/* Form Content Wrapper */}
         <div className="flex-1 flex items-center justify-center p-6 sm:p-12 lg:p-24">
           <div className="w-full max-w-[420px] flex flex-col gap-8">
-            
+
             {/* Page Heading */}
             <div className="flex flex-col gap-2">
               <h1 className="text-navy-deep dark:text-white tracking-tight text-[32px] font-bold leading-tight font-serif">Staff Access</h1>
@@ -84,16 +96,18 @@ const StaffLogin = () => {
 
             {/* Login Form */}
             <form className="flex flex-col gap-5" onSubmit={handleLogin}>
-              
+
               {/* Email Field */}
               <div className="flex flex-col gap-2">
                 <label className="text-navy-deep dark:text-white text-sm font-medium leading-normal" htmlFor="email">Email Address</label>
                 <div className="relative">
-                  <input 
-                    className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-navy-deep dark:text-white h-12 px-4 placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-base" 
-                    id="email" 
-                    placeholder="name@wakilismart.com" 
-                    type="email"
+                  <input
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-navy-deep dark:text-white h-12 px-4 placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-base"
+                    id="email"
+                    placeholder="name@wakilismart.com"
+                    type="text"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
               </div>
@@ -105,14 +119,16 @@ const StaffLogin = () => {
                   <a className="text-primary text-sm font-medium hover:underline cursor-pointer">Forgot Password?</a>
                 </div>
                 <div className="relative flex items-center">
-                  <input 
-                    className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-navy-deep dark:text-white h-12 pl-4 pr-12 placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-base" 
-                    id="password" 
-                    placeholder="Enter your password" 
+                  <input
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-navy-deep dark:text-white h-12 pl-4 pr-12 placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-base"
+                    id="password"
+                    placeholder="Enter your password"
                     type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                   />
-                  <button 
-                    className="absolute right-0 top-0 bottom-0 px-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex items-center justify-center transition-colors cursor-pointer" 
+                  <button
+                    className="absolute right-0 top-0 bottom-0 px-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex items-center justify-center transition-colors cursor-pointer"
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                   >

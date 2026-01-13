@@ -7,6 +7,9 @@ import PracticeAreaDetail from './pages/PracticeAreaDetail';
 import KnowledgeHub from './pages/KnowledgeHub';
 import About from './pages/About';
 import StaffLogin from './pages/StaffLogin';
+import DashboardLayout from './layouts/DashboardLayout';
+import DashboardOverview from './pages/dashboard/DashboardOverview';
+import CreateArticle from './pages/dashboard/CreateArticle';
 
 import lawyerImg from './assets/lawyer.webp'; 
 
@@ -181,6 +184,11 @@ function App() {
           <Route path="knowledge-hub" element={<KnowledgeHub />} />          
         </Route>
         <Route path="staff-login" element={<StaffLogin />} />
+
+        <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route index element={<DashboardOverview />} />
+          <Route path="create-article" element={<CreateArticle />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );

@@ -8,6 +8,7 @@ import { CasesModule } from './cases/cases.module';
 import { BookingsModule } from './bookings/bookings.module';
 import { BillingModule } from './billing/billing.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ArticlesModule } from './articles/articles.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { PrismaModule } from './prisma/prisma.module';
     BookingsModule,
     BillingModule,
     PrismaModule,
+    ArticlesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
