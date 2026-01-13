@@ -1,3 +1,22 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@600;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  /* Custom Colors derived from your HTML */
+  --color-primary: #144bb8;
+  --color-secondary: #D4AF37;
+  --color-background-light: #f6f6f8;
+  --color-background-dark: #111621;
+  --color-navy-deep: #0e121b;
+
+  /* Custom Fonts */
+  --font-display: "Inter", sans-serif;
+  --font-serif: "Playfair Display", serif;
+}
+
+/* Custom Utilities */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+}
