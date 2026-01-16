@@ -14,6 +14,7 @@ export class ArticlesService {
     return this.prisma.article.create({
       data: {
         title: createArticleDto.title,
+        category: createArticleDto.category,
         content: createArticleDto.content,
         author_id: createArticleDto.authorId,
       },
