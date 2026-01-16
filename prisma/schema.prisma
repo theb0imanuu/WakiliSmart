@@ -13,9 +13,11 @@ generator client {
 
 model User {
   id            String   @id @default(cuid())
+  email         String   @unique
   username      String   @unique
+  name          String
   password_hash String
-  role          String
+  role          String   // 'SECRETARY', 'ADVOCATE'
   created_at    DateTime @default(now())
   articles      Article[]
 }
@@ -29,6 +31,23 @@ model Client {
   created_at   DateTime      @default(now())
   cases        Case[]
   appointments Appointment[]
+  inquiries    Inquiry[]
+}
+
+model Inquiry {
+  id          String   @id @default(cuid())
+  status      String   @default("PENDING") // 'PENDING', 'CONVERTED'
+
+  // Walk-in fields
+  name        String?
+  email       String?
+  phone       String?
+  message     String?
+
+  client_id   String?
+  client      Client?  @relation(fields: [client_id], references: [id])
+
+  created_at  DateTime @default(now())
 }
 
 model Case {
@@ -36,10 +55,13 @@ model Case {
   case_number String        @unique
   title       String
   case_type   String
-  status      String    @default("PENDING")
+  status      String        @default("PENDING")
   filing_date DateTime
+  notes       String?
+
   client_id   String
   client      Client        @relation(fields: [client_id], references: [id])
+
   created_at  DateTime      @default(now())
   invoices    Invoice[]
   Appointment Appointment[]
@@ -47,24 +69,29 @@ model Case {
 
 model Appointment {
   id         String            @id @default(cuid())
-  datetime   DateTime
-  reason     String
-  status     String @default("PENDING")
+  date       DateTime
+  purpose    String
+  status     String            @default("PENDING")
+
   client_id  String
   client     Client            @relation(fields: [client_id], references: [id])
   case_id    String?
   case       Case?             @relation(fields: [case_id], references: [id])
+
   created_at DateTime          @default(now())
 }
 
 model Invoice {
   id           String        @id @default(cuid())
-  total_amount Float
+  amount       Float
   balance_due  Float
-  status       String @default("PENDING")
+  status       String        @default("UNPAID") // 'PAID', 'UNPAID'
+  serviceType  String
   due_date     DateTime
+
   case_id      String
   case         Case          @relation(fields: [case_id], references: [id])
+
   created_at   DateTime      @default(now())
   items        InvoiceItem[]
   payments     Payment[]
@@ -82,17 +109,21 @@ model Payment {
   id                    String        @id @default(cuid())
   amount                Float
   method                String
-  transaction_reference String? // For M-Pesa, etc.
+  transaction_reference String?
   date_recorded         DateTime      @default(now())
   invoice_id            String
   invoice               Invoice       @relation(fields: [invoice_id], references: [id])
 }
 
 model Article {
-  id          String   @id @default(cuid())
-  title       String
-  content     String
-  author_id   String
-  author      User     @relation(fields: [author_id], references: [id])
-  created_at  DateTime @default(now())
+  id            String   @id @default(cuid())
+  title         String
+  category      String
+  content       String
+  headlineImage String?
+  status        String   @default("DRAFT")
+
+  author_id     String
+  author        User     @relation(fields: [author_id], references: [id])
+  created_at    DateTime @default(now())
 }
