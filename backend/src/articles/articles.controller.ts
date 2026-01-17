@@ -11,8 +11,8 @@ export class ArticlesController {
   @UseGuards(AuthGuard)
   @Post()
   create(@Request() req: any, @Body() createArticleDto: CreateArticleDto) {
-    if (req.user.role !== 'LAWYER') {
-      throw new UnauthorizedException('Only lawyers can post articles');
+    if (req.user.role !== 'ADVOCATE') {
+      throw new UnauthorizedException('Only advocates can post articles');
     }
     createArticleDto.authorId = req.user.sub;
     return this.articlesService.create(createArticleDto);

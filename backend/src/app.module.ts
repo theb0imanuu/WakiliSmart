@@ -11,6 +11,8 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ArticlesModule } from './articles/articles.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { InquiryModule } from './inquiry/inquiry.module';
+import { DocumentsModule } from './documents/documents.module';
+import { PracticeAreasModule } from './practice-areas/practice-areas.module';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { InquiryModule } from './inquiry/inquiry.module';
     ArticlesModule,
     DashboardModule,
     InquiryModule,
+    DocumentsModule,
+    PracticeAreasModule,
   ],
   controllers: [AppController],
   providers: [AppService],

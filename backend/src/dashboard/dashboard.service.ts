@@ -67,6 +67,9 @@ export class DashboardService {
       orderBy: {
         created_at: 'desc',
       },
+      include: {
+        client: true,
+      },
     });
 
     return {

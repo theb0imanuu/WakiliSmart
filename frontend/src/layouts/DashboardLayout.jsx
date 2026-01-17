@@ -27,8 +27,8 @@ const DashboardLayout = () => {
             <span className="material-symbols-outlined">dashboard</span>
             Dashboard
           </Link>
-           {/* Add Create Article Link if Lawyer */}
-           {role === 'LAWYER' && (
+           {/* Add Create Article Link if Advocate */}
+           {role === 'ADVOCATE' && (
             <Link to="/dashboard/create-article" className="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg">
               <span className="material-symbols-outlined">article</span>
               Post Article

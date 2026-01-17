@@ -1,13 +1,26 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import api from '../../utils/api';
 
 const DocumentRepository = () => {
-  // Mock Data for Files
-  const files = [
-    { id: 1, name: "Initial Drafts", type: "folder", date: "Oct 24, 2023", size: "-", status: "" },
-    { id: 2, name: "Final_Merger_Agreement_v3.pdf", type: "pdf", date: "Today, 10:45 AM", size: "2.4 MB", status: "Signed" },
-    { id: 3, name: "Draft_Addendum_B.docx", type: "doc", date: "Yesterday, 4:20 PM", size: "450 KB", status: "Draft" },
-    { id: 4, name: "Scanned_Evidence_001.jpg", type: "image", date: "Oct 20, 2023", size: "5.1 MB", status: "Shared" },
-  ];
+  const [files, setFiles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        const response = await api.get('/documents');
+        setFiles(response.data);
+      } catch (err) {
+        setError('Failed to fetch documents.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDocuments();
+  }, []);
 
   // Helper to render file icons based on type
   const getFileIcon = (type) => {
@@ -115,40 +128,44 @@ const DocumentRepository = () => {
           </div>
 
           {/* File Items Loop */}
-          <div className="flex flex-col gap-1">
-            {files.map((file) => (
-              <div key={file.id} className="group relative flex items-center bg-white dark:bg-[#1a202c] border border-transparent hover:border-primary/30 rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                  <input className="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4 bg-slate-100 dark:bg-slate-700 dark:border-slate-600" type="checkbox"/>
-                </div>
-                <div className="grid grid-cols-12 gap-4 w-full items-center">
-                  <div className="col-span-6 md:col-span-5 flex items-center gap-3 pl-8">
-                    {getFileIcon(file.type)}
-                    <span className="text-sm font-medium text-slate-900 dark:text-white truncate">{file.name}</span>
+          {loading && <p>Loading documents...</p>}
+          {error && <p className="text-red-500">{error}</p>}
+          {!loading && !error && (
+            <div className="flex flex-col gap-1">
+              {files.map((file) => (
+                <div key={file.id} className="group relative flex items-center bg-white dark:bg-[#1a202c] border border-transparent hover:border-primary/30 rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                    <input className="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4 bg-slate-100 dark:bg-slate-700 dark:border-slate-600" type="checkbox"/>
                   </div>
-                  <div className="col-span-3 hidden md:block text-sm text-slate-500">{file.date}</div>
-                  <div className="col-span-2 hidden md:block text-sm text-slate-500">{file.size}</div>
-                  <div className="col-span-3 md:col-span-2 flex justify-end items-center gap-2">
-                    {file.status && (
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium 
-                        ${file.status === 'Signed' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 
-                          file.status === 'Draft' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' : 
-                          'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'}`}>
-                        {file.status}
-                      </span>
-                    )}
+                  <div className="grid grid-cols-12 gap-4 w-full items-center">
+                    <div className="col-span-6 md:col-span-5 flex items-center gap-3 pl-8">
+                      {getFileIcon(file.type)}
+                      <span className="text-sm font-medium text-slate-900 dark:text-white truncate">{file.name}</span>
+                    </div>
+                    <div className="col-span-3 hidden md:block text-sm text-slate-500">{file.date}</div>
+                    <div className="col-span-2 hidden md:block text-sm text-slate-500">{file.size}</div>
+                    <div className="col-span-3 md:col-span-2 flex justify-end items-center gap-2">
+                      {file.status && (
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium 
+                          ${file.status === 'Signed' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 
+                            file.status === 'Draft' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' : 
+                            'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'}`}>
+                          {file.status}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Hover Actions */}
+                  <div className="absolute right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 bg-white dark:bg-[#1a202c] shadow-sm rounded-md p-1 border border-slate-100 dark:border-slate-700">
+                    <button className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-500"><span className="material-symbols-outlined text-[18px]">download</span></button>
+                    <button className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-500"><span className="material-symbols-outlined text-[18px]">share</span></button>
+                    <button className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-500"><span className="material-symbols-outlined text-[18px]">more_vert</span></button>
                   </div>
                 </div>
-                
-                {/* Hover Actions */}
-                <div className="absolute right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 bg-white dark:bg-[#1a202c] shadow-sm rounded-md p-1 border border-slate-100 dark:border-slate-700">
-                  <button className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-500"><span className="material-symbols-outlined text-[18px]">download</span></button>
-                  <button className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-500"><span className="material-symbols-outlined text-[18px]">share</span></button>
-                  <button className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-500"><span className="material-symbols-outlined text-[18px]">more_vert</span></button>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
           {/* Drag & Drop Zone */}
           <div className="mt-8 flex flex-col items-center gap-4 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-[#1a202c] px-6 py-10 transition-colors hover:bg-slate-50 dark:hover:bg-[#232936] cursor-pointer">

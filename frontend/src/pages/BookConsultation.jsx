@@ -1,6 +1,63 @@
-import React from 'react';
+import React, { useState } from 'react';
+import api from '../utils/api';
 
 const BookConsultation = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    message: '',
+    practiceArea: '',
+  });
+
+  const [formStatus, setFormStatus] = useState({
+    submitted: false,
+    success: false,
+    message: '',
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const { name, email, phone, message, practiceArea } = formData;
+    
+    const fullMessage = `Practice Area: ${practiceArea}\n\n${message}`;
+
+    try {
+      const response = await api.post('/inquiry', {
+        name,
+        email,
+        phone,
+        message: fullMessage,
+      });
+
+      if (response.status === 201) {
+        setFormStatus({
+          submitted: true,
+          success: true,
+          message: 'Your consultation request has been sent successfully!',
+        });
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          message: '',
+          practiceArea: '',
+        });
+      }
+    } catch (error) {
+      setFormStatus({
+        submitted: true,
+        success: false,
+        message: 'Something went wrong. Please try again later.',
+      });
+    }
+  };
+  
   return (
     <div className="w-full bg-background-light dark:bg-background-dark py-12 lg:py-20">
       <div className="px-4 md:px-8 lg:px-40 flex justify-center">
@@ -57,60 +114,66 @@ const BookConsultation = () => {
           <div className="w-full md:w-2/3 p-8 lg:p-12">
             <h2 className="text-2xl font-bold font-serif text-navy-deep dark:text-white mb-6">Schedule Your Consultation</h2>
             
-            <form className="flex flex-col gap-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* First Name */}
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-bold text-gray-600 dark:text-gray-300">First Name</label>
-                  <input type="text" placeholder="John" className="h-12 px-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/50 text-navy-deep dark:text-white transition-all" />
-                </div>
-                
-                {/* Last Name */}
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-bold text-gray-600 dark:text-gray-300">Last Name</label>
-                  <input type="text" placeholder="Doe" className="h-12 px-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/50 text-navy-deep dark:text-white transition-all" />
-                </div>
+            {formStatus.submitted ? (
+              <div
+                className={`p-4 rounded-lg text-sm ${
+                  formStatus.success
+                    ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200'
+                    : 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200'
+                }`}
+              >
+                {formStatus.message}
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Email */}
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-bold text-gray-600 dark:text-gray-300">Email Address</label>
-                  <input type="email" placeholder="john@example.com" className="h-12 px-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/50 text-navy-deep dark:text-white transition-all" />
+            ) : (
+              <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Full Name */}
+                  <div className="flex flex-col gap-2 md:col-span-2">
+                    <label className="text-sm font-bold text-gray-600 dark:text-gray-300">Full Name</label>
+                    <input name="name" value={formData.name} onChange={handleChange} type="text" placeholder="John Doe" className="h-12 px-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/50 text-navy-deep dark:text-white transition-all" />
+                  </div>
                 </div>
-                
-                {/* Phone */}
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-bold text-gray-600 dark:text-gray-300">Phone Number</label>
-                  <input type="tel" placeholder="+254..." className="h-12 px-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/50 text-navy-deep dark:text-white transition-all" />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Email */}
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-bold text-gray-600 dark:text-gray-300">Email Address</label>
+                    <input name="email" value={formData.email} onChange={handleChange} type="email" placeholder="john@example.com" className="h-12 px-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/50 text-navy-deep dark:text-white transition-all" />
+                  </div>
+                  
+                  {/* Phone */}
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-bold text-gray-600 dark:text-gray-300">Phone Number</label>
+                    <input name="phone" value={formData.phone} onChange={handleChange} type="tel" placeholder="+254..." className="h-12 px-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/50 text-navy-deep dark:text-white transition-all" />
+                  </div>
                 </div>
-              </div>
 
-              {/* Practice Area */}
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-gray-600 dark:text-gray-300">Legal Area</label>
-                <select className="h-12 px-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/50 text-navy-deep dark:text-white transition-all appearance-none cursor-pointer">
-                  <option value="" disabled selected>Select a practice area</option>
-                  <option value="corporate">Corporate Law</option>
-                  <option value="civil">Civil Litigation</option>
-                  <option value="family">Family & Estate</option>
-                  <option value="realestate">Real Estate</option>
-                  <option value="ip">Intellectual Property</option>
-                  <option value="employment">Employment Law</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
+                {/* Practice Area */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-bold text-gray-600 dark:text-gray-300">Legal Area</label>
+                  <select name="practiceArea" value={formData.practiceArea} onChange={handleChange} className="h-12 px-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/50 text-navy-deep dark:text-white transition-all appearance-none cursor-pointer">
+                    <option value="" disabled>Select a practice area</option>
+                    <option value="corporate">Corporate Law</option>
+                    <option value="civil">Civil Litigation</option>
+                    <option value="family">Family & Estate</option>
+                    <option value="realestate">Real Estate</option>
+                    <option value="ip">Intellectual Property</option>
+                    <option value="employment">Employment Law</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
 
-              {/* Message */}
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-gray-600 dark:text-gray-300">Case Details</label>
-                <textarea rows="4" placeholder="Briefly describe your legal issue..." className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/50 text-navy-deep dark:text-white transition-all resize-none"></textarea>
-              </div>
+                {/* Message */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-bold text-gray-600 dark:text-gray-300">Case Details</label>
+                  <textarea name="message" value={formData.message} onChange={handleChange} rows="4" placeholder="Briefly describe your legal issue..." className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/50 text-navy-deep dark:text-white transition-all resize-none"></textarea>
+                </div>
 
-              <button type="button" className="h-12 mt-2 bg-primary hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg shadow-blue-900/10 transition-colors cursor-pointer">
-                Request Appointment
-              </button>
-            </form>
+                <button type="submit" className="h-12 mt-2 bg-primary hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg shadow-blue-900/10 transition-colors cursor-pointer">
+                  Request Appointment
+                </button>
+              </form>
+            )}
           </div>
 
         </div>

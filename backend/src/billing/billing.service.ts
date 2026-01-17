@@ -1,26 +1,53 @@
 import { Injectable } from '@nestjs/common';
-import { CreateBillingDto } from './dto/create-billing.dto';
-import { UpdateBillingDto } from './dto/update-billing.dto';
+import { CreateInvoiceDto } from './dto/create-invoice.dto';
+import { UpdateInvoiceDto } from './dto/update-invoice.dto';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class BillingService {
-  create(createBillingDto: CreateBillingDto) {
-    return 'This action adds a new billing';
+  constructor(private prisma: PrismaService) {}
+
+  create(createInvoiceDto: CreateInvoiceDto) {
+    return this.prisma.invoice.create({
+      data: createInvoiceDto,
+    });
   }
 
   findAll() {
-    return `This action returns all billing`;
+    return this.prisma.invoice.findMany({
+      include: {
+        case: {
+          include: {
+            client: true,
+          },
+        },
+      },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} billing`;
+  findOne(id: string) {
+    return this.prisma.invoice.findUnique({
+      where: { id },
+      include: {
+        case: {
+          include: {
+            client: true,
+          },
+        },
+        items: true,
+        payments: true,
+      },
+    });
   }
 
-  update(id: number, updateBillingDto: UpdateBillingDto) {
-    return `This action updates a #${id} billing`;
+  update(id: string, updateInvoiceDto: UpdateInvoiceDto) {
+    return this.prisma.invoice.update({
+      where: { id },
+      data: updateInvoiceDto,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} billing`;
+  remove(id: string) {
+    return this.prisma.invoice.delete({ where: { id } });
   }
 }

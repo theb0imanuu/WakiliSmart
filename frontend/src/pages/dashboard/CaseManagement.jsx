@@ -1,18 +1,61 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import api from '../../utils/api';
 
 const CaseManagement = () => {
-  // Sample Data - In a real app, this comes from your API
-  const cases = [
-    { id: "REF-2023-089", title: "Smith v. State", client: "John Smith", initials: "JS", color: "bg-blue-100 text-blue-600", status: "Active", statusColor: "green", nextDate: "Nov 24, 2023", area: "Criminal Defense" },
-    { id: "REF-2023-092", title: "TechCorp Acquisition", client: "Acme Corp", initials: "AC", color: "bg-purple-100 text-purple-600", status: "Review", statusColor: "blue", nextDate: "No upcoming hearings", area: "Corporate" },
-    { id: "REF-2023-075", title: "Estate of M. Williams", client: "Linda Williams", initials: "LW", color: "bg-orange-100 text-orange-600", status: "Pending", statusColor: "yellow", nextDate: "Dec 02, 2023", area: "Family Law" },
-    { id: "REF-2023-112", title: "Doe Divorce Proceedings", client: "Jane Doe", initials: "JD", color: "bg-pink-100 text-pink-600", status: "Urgent", statusColor: "red", nextDate: "Tomorrow", area: "Family Law" },
-    { id: "REF-2023-045", title: "Intellectual Property Dispute", client: "Global Innovations", initials: "GI", color: "bg-teal-100 text-teal-600", status: "Closed", statusColor: "gray", nextDate: "Case Closed", area: "IP Law" },
+  const [cases, setCases] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchCases = async () => {
+      try {
+        const response = await api.get('/cases');
+        setCases(response.data);
+      } catch (err) {
+        setError('Failed to fetch cases.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCases();
+  }, []);
+
+  const getInitials = (name) => {
+    if (!name) return 'U';
+    const names = name.split(' ');
+    if (names.length > 1) {
+      return `${names[0][0]}${names[1][0]}`;
+    }
+    return names[0][0];
+  };
+
+  const statusColors = {
+    ACTIVE: 'green',
+    PENDING: 'yellow',
+    REVIEW: 'blue',
+    URGENT: 'red',
+    CLOSED: 'gray',
+  };
+
+  const avatarColors = [
+    'bg-blue-100 text-blue-600',
+    'bg-purple-100 text-purple-600',
+    'bg-orange-100 text-orange-600',
+    'bg-pink-100 text-pink-600',
+    'bg-teal-100 text-teal-600',
   ];
 
+  const getRandomAvatarColor = (id) => {
+    const index = id ? id.charCodeAt(0) % avatarColors.length : 0;
+    return avatarColors[index];
+  };
+
   // Helper to get badge colors based on status
-  const getStatusBadge = (status, color) => {
+  const getStatusBadge = (status) => {
+    const color = statusColors[status.toUpperCase()] || 'gray';
     const colors = {
       green: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800",
       blue: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800",
@@ -41,10 +84,10 @@ const CaseManagement = () => {
           <h1 className="text-slate-900 dark:text-white text-3xl font-black leading-tight tracking-tight font-serif">Case Management</h1>
           <p className="text-slate-500 dark:text-slate-400 text-base font-normal">Manage and track all active legal matters and court proceedings</p>
         </div>
-        <button className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition-colors shadow-sm cursor-pointer">
+        <Link to="/dashboard/case-management/new" className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition-colors shadow-sm cursor-pointer">
           <span className="material-symbols-outlined text-[20px]">add</span>
           New Case
-        </button>
+        </Link>
       </div>
 
       {/* 2. Filters Bar */}
@@ -87,70 +130,76 @@ const CaseManagement = () => {
 
       {/* 3. Data Table */}
       <div className="bg-white dark:bg-[#1a202c] rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600 dark:text-slate-400">
-            <thead className="bg-slate-50 dark:bg-slate-800/50 text-xs uppercase font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
-              <tr>
-                <th className="px-6 py-4 w-12"><input className="rounded border-slate-300 text-primary focus:ring-primary bg-slate-50 dark:bg-slate-700 dark:border-slate-600" type="checkbox"/></th>
-                <th className="px-6 py-4">Case Details</th>
-                <th className="px-6 py-4">Client</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Next Hearing</th>
-                <th className="px-6 py-4">Practice Area</th>
-                <th className="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-              {cases.map((row) => (
-                <tr key={row.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group cursor-pointer">
-                  <td className="px-6 py-4">
-                    <input className="rounded border-slate-300 text-primary focus:ring-primary bg-white dark:bg-slate-800 dark:border-slate-600" type="checkbox"/>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-slate-900 dark:text-white group-hover:text-primary transition-colors">{row.title}</span>
-                      <span className="text-xs text-slate-500 mt-0.5 font-mono">{row.id}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold ${row.color}`}>
-                        {row.initials}
-                      </div>
-                      <span className="font-medium text-slate-700 dark:text-slate-300">{row.client}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    {getStatusBadge(row.status, row.statusColor)}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <span className={`material-symbols-outlined text-[18px] ${row.statusColor === 'red' ? 'text-red-500' : 'text-slate-400'}`}>event</span>
-                      <span className={row.statusColor === 'red' ? 'text-red-600 font-medium' : ''}>{row.nextDate}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">{row.area}</td>
-                  <td className="px-6 py-4 text-right">
-                    <button className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-                      <span className="material-symbols-outlined">more_vert</span>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {loading && <p className="p-6">Loading cases...</p>}
+        {error && <p className="p-6 text-red-500">Failed to fetch cases.</p>}
+        {!loading && !error && (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm text-slate-600 dark:text-slate-400">
+                <thead className="bg-slate-50 dark:bg-slate-800/50 text-xs uppercase font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
+                  <tr>
+                    <th className="px-6 py-4 w-12"><input className="rounded border-slate-300 text-primary focus:ring-primary bg-slate-50 dark:bg-slate-700 dark:border-slate-600" type="checkbox"/></th>
+                    <th className="px-6 py-4">Case Details</th>
+                    <th className="px-6 py-4">Client</th>
+                    <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4">Filing Date</th>
+                    <th className="px-6 py-4">Practice Area</th>
+                    <th className="px-6 py-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                  {cases.map((row) => (
+                    <tr key={row.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group cursor-pointer">
+                      <td className="px-6 py-4">
+                        <input className="rounded border-slate-300 text-primary focus:ring-primary bg-white dark:bg-slate-800 dark:border-slate-600" type="checkbox"/>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-slate-900 dark:text-white group-hover:text-primary transition-colors">{row.title}</span>
+                          <span className="text-xs text-slate-500 mt-0.5 font-mono">{row.case_number}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold ${getRandomAvatarColor(row.client.id)}`}>
+                            {getInitials(row.client.name)}
+                          </div>
+                          <span className="font-medium text-slate-700 dark:text-slate-300">{row.client.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        {getStatusBadge(row.status)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <span className={`material-symbols-outlined text-[18px] text-slate-400`}>event</span>
+                          <span>{new Date(row.filing_date).toLocaleDateString()}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">{row.case_type}</td>
+                      <td className="px-6 py-4 text-right">
+                        <button className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                          <span className="material-symbols-outlined">more_vert</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-        {/* Pagination */}
-        <div className="bg-white dark:bg-[#1a202c] border-t border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between">
-          <span className="text-sm text-slate-500 dark:text-slate-400">
-            Showing <span className="font-medium text-slate-900 dark:text-white">1</span> to <span className="font-medium text-slate-900 dark:text-white">{cases.length}</span> of <span className="font-medium text-slate-900 dark:text-white">128</span> results
-          </span>
-          <div className="flex items-center gap-2">
-            <button className="px-3 py-1 text-sm text-slate-500 dark:text-slate-400 bg-white dark:bg-[#1a202c] border border-slate-200 dark:border-slate-700 rounded hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 transition-colors">Previous</button>
-            <button className="px-3 py-1 text-sm text-slate-500 dark:text-slate-400 bg-white dark:bg-[#1a202c] border border-slate-200 dark:border-slate-700 rounded hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Next</button>
-          </div>
-        </div>
+            {/* Pagination */}
+            <div className="bg-white dark:bg-[#1a202c] border-t border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between">
+              <span className="text-sm text-slate-500 dark:text-slate-400">
+                Showing <span className="font-medium text-slate-900 dark:text-white">1</span> to <span className="font-medium text-slate-900 dark:text-white">{cases.length}</span> of <span className="font-medium text-slate-900 dark:text-white">{cases.length}</span> results
+              </span>
+              <div className="flex items-center gap-2">
+                <button className="px-3 py-1 text-sm text-slate-500 dark:text-slate-400 bg-white dark:bg-[#1a202c] border border-slate-200 dark:border-slate-700 rounded hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 transition-colors">Previous</button>
+                <button className="px-3 py-1 text-sm text-slate-500 dark:text-slate-400 bg-white dark:bg-[#1a202c] border border-slate-200 dark:border-slate-700 rounded hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Next</button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
     </div>

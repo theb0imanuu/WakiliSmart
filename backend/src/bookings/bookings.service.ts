@@ -1,26 +1,56 @@
 import { Injectable } from '@nestjs/common';
-import { CreateBookingDto } from './dto/create-booking.dto';
-import { UpdateBookingDto } from './dto/update-booking.dto';
+import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import { UpdateAppointmentDto } from './dto/update-appointment.dto';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class BookingsService {
-  create(createBookingDto: CreateBookingDto) {
-    return 'This action adds a new booking';
+  constructor(private prisma: PrismaService) {}
+
+  create(createAppointmentDto: CreateAppointmentDto) {
+    return this.prisma.appointment.create({
+      data: createAppointmentDto,
+    });
   }
 
-  findAll() {
-    return `This action returns all bookings`;
+  findAll(month?: string, year?: string) {
+    const where: any = {};
+    if (month && year) {
+      const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+      const endDate = new Date(parseInt(year), parseInt(month), 0);
+      where.date = {
+        gte: startDate,
+        lte: endDate,
+      };
+    }
+
+    return this.prisma.appointment.findMany({
+      where,
+      include: {
+        client: true,
+        case: true,
+      },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} booking`;
+  findOne(id: string) {
+    return this.prisma.appointment.findUnique({
+      where: { id },
+      include: {
+        client: true,
+        case: true,
+      },
+    });
   }
 
-  update(id: number, updateBookingDto: UpdateBookingDto) {
-    return `This action updates a #${id} booking`;
+  update(id: string, updateAppointmentDto: UpdateAppointmentDto) {
+    return this.prisma.appointment.update({
+      where: { id },
+      data: updateAppointmentDto,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} booking`;
+  remove(id: string) {
+    return this.prisma.appointment.delete({ where: { id } });
   }
 }

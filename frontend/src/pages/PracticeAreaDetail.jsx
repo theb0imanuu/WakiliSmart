@@ -1,14 +1,54 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { practiceAreas } from '../data/practiceAreas';
+import api from '../utils/api';
 
 const PracticeAreaDetail = () => {
-  const { slug } = useParams(); // Gets the 'id' from the URL
-  const area = practiceAreas.find(p => p.id === slug);
+  const { slug } = useParams();
+  const [area, setArea] = useState(null);
+  const [otherAreas, setOtherAreas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchPracticeAreaData = async () => {
+      try {
+        setLoading(true);
+        const areaResponse = await api.get(`/practice-areas/${slug}`);
+        setArea(areaResponse.data);
+
+        const allAreasResponse = await api.get('/practice-areas');
+        setOtherAreas(allAreasResponse.data.filter(p => p.slug !== slug));
+      } catch (err) {
+        setError('Failed to fetch practice area data.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPracticeAreaData();
+  }, [slug]);
+
+  if (loading) {
+    return <div className="text-center py-20 text-2xl font-serif">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center py-20 text-2xl font-serif text-red-500">{error}</div>;
+  }
 
   if (!area) {
     return <div className="text-center py-20 text-2xl font-serif">Service not found.</div>;
   }
+  
+  const features = [
+    "Legal Consultation and Advisory",
+    "Contract Drafting and Review",
+    "Dispute Resolution and Litigation",
+    "Regulatory Compliance",
+    "Mergers and Acquisitions",
+    "Due Diligence",
+  ];
 
   return (
     <div className="bg-background-light dark:bg-background-dark min-h-screen">
@@ -36,12 +76,12 @@ const PracticeAreaDetail = () => {
              <div className="bg-white dark:bg-[#1a202c] p-8 md:p-12 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
                 <h2 className="text-2xl font-bold font-serif mb-6 text-navy-deep dark:text-white">Overview</h2>
                 <p className="text-gray-600 dark:text-gray-300 text-lg leading-relaxed mb-8">
-                  {area.fullDesc}
+                  {area.desc}
                 </p>
 
                 <h3 className="text-xl font-bold font-serif mb-4 text-navy-deep dark:text-white">What We Cover</h3>
                 <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {area.features.map((feature, idx) => (
+                  {features.map((feature, idx) => (
                     <li key={idx} className="flex items-start gap-3 p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50">
                       <span className="material-symbols-outlined text-secondary mt-0.5">check_circle</span>
                       <span className="text-gray-700 dark:text-gray-300 font-medium">{feature}</span>
@@ -67,10 +107,10 @@ const PracticeAreaDetail = () => {
              <div className="bg-white dark:bg-[#1a202c] p-6 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
                 <h3 className="font-serif font-bold text-xl mb-4 text-navy-deep dark:text-white">Other Services</h3>
                 <div className="flex flex-col gap-2">
-                   {practiceAreas.filter(p => p.id !== slug).map(other => (
+                   {otherAreas.map(other => (
                       <Link 
-                        key={other.id} 
-                        to={`/practice-areas/${other.id}`}
+                        key={other.slug} 
+                        to={`/practice-areas/${other.slug}`}
                         className="p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors flex justify-between items-center group"
                       >
                          <span>{other.title}</span>

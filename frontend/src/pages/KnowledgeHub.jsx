@@ -1,9 +1,43 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { articles, featuredArticle } from '../data/articles';
+import api from '../utils/api';
 import lawyerImg from '../assets/lawyer.webp'; 
 
 const KnowledgeHub = () => {
+  const [articles, setArticles] = useState([]);
+  const [featuredArticle, setFeaturedArticle] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchArticles = async () => {
+      try {
+        const response = await api.get('/articles');
+        const formattedArticles = response.data.map(article => ({
+          ...article,
+          excerpt: article.content.substring(0, 100) + '...',
+          date: new Date(article.created_at).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          }),
+          image: lawyerImg, // Using a placeholder image
+        }));
+        setArticles(formattedArticles);
+        if (formattedArticles.length > 0) {
+          setFeaturedArticle(formattedArticles[0]);
+        }
+      } catch (err) {
+        setError('Failed to fetch articles.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchArticles();
+  }, []);
+
   return (
     <div className="w-full bg-background-light dark:bg-background-dark min-h-screen py-8">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -41,29 +75,33 @@ const KnowledgeHub = () => {
           
           {/* Left Column: Article Grid (8/12) */}
           <div className="lg:col-span-8 flex flex-col gap-10">
-            
+            {loading && <p>Loading articles...</p>}
+            {error && <p className="text-red-500">{error}</p>}
+
             {/* Featured Article */}
-            <article className="group relative flex flex-col md:flex-row gap-6 bg-white dark:bg-[#1a202c] rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-gray-800">
-              <div 
-                className="w-full md:w-2/5 aspect-video md:aspect-auto bg-cover bg-center" 
-                style={{ backgroundImage: `url(${featuredArticle.image})` }}
-              ></div>
-              <div className="flex flex-col justify-center p-6 md:pr-8 md:py-8 w-full md:w-3/5">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wide">Featured</span>
-                  <span className="text-gray-400 text-xs font-medium">{featuredArticle.date}</span>
+            {!loading && !error && featuredArticle && (
+              <article className="group relative flex flex-col md:flex-row gap-6 bg-white dark:bg-[#1a202c] rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-gray-800">
+                <div 
+                  className="w-full md:w-2/5 aspect-video md:aspect-auto bg-cover bg-center" 
+                  style={{ backgroundImage: `url(${featuredArticle.image})` }}
+                ></div>
+                <div className="flex flex-col justify-center p-6 md:pr-8 md:py-8 w-full md:w-3/5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wide">Featured</span>
+                    <span className="text-gray-400 text-xs font-medium">{featuredArticle.date}</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-navy-deep dark:text-white mb-3 group-hover:text-primary transition-colors font-serif">
+                    <Link to={`/knowledge-hub/${featuredArticle.id}`}>{featuredArticle.title}</Link>
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-4 line-clamp-3">
+                    {featuredArticle.excerpt}
+                  </p>
+                  <Link to={`/knowledge-hub/${featuredArticle.id}`} className="inline-flex items-center text-primary font-semibold text-sm hover:underline">
+                    Read Full Article <span className="material-symbols-outlined text-base ml-1">arrow_forward</span>
+                  </Link>
                 </div>
-                <h3 className="text-2xl font-bold text-navy-deep dark:text-white mb-3 group-hover:text-primary transition-colors font-serif">
-                  <Link to="#">{featuredArticle.title}</Link>
-                </h3>
-                <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-4 line-clamp-3">
-                  {featuredArticle.excerpt}
-                </p>
-                <Link to="#" className="inline-flex items-center text-primary font-semibold text-sm hover:underline">
-                  Read Full Article <span className="material-symbols-outlined text-base ml-1">arrow_forward</span>
-                </Link>
-              </div>
-            </article>
+              </article>
+            )}
 
             {/* Mobile Filter Chips */}
             <div className="lg:hidden overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
@@ -79,7 +117,7 @@ const KnowledgeHub = () => {
 
             {/* Standard Article Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {articles.map((article) => (
+              {!loading && !error && articles.slice(1).map((article) => (
                 <article key={article.id} className="flex flex-col bg-white dark:bg-[#1a202c] rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-gray-800 group h-full">
                   <div 
                     className="aspect-video w-full bg-cover bg-center" 
@@ -91,7 +129,7 @@ const KnowledgeHub = () => {
                       <span className="text-gray-400 text-xs">{article.date}</span>
                     </div>
                     <h4 className="text-lg font-bold text-navy-deep dark:text-white mb-2 group-hover:text-primary transition-colors font-serif">
-                      <Link to="#">{article.title}</Link>
+                      <Link to={`/knowledge-hub/${article.id}`}>{article.title}</Link>
                     </h4>
                     <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-4 flex-1 line-clamp-3">
                       {article.excerpt}
@@ -103,7 +141,7 @@ const KnowledgeHub = () => {
                           className="size-6 rounded-full bg-gray-200 bg-cover bg-center" 
                           style={{ backgroundImage: `url(${lawyerImg})` }}
                         ></div>
-                        <span className="text-xs font-medium text-gray-500">WakiliSmart Team</span>
+                        <span className="text-xs font-medium text-gray-500">{article.author.username}</span>
                       </div>
                       <span className="material-symbols-outlined text-gray-400 text-sm group-hover:text-primary transition-colors">arrow_forward</span>
                     </div>

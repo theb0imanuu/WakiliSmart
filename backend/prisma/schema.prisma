@@ -126,3 +126,22 @@ model Article {
   author        User     @relation(fields: [author_id], references: [id])
   created_at    DateTime @default(now())
 }
+
+model Document {
+  id        String   @id @default(cuid())
+  name      String
+  type      String // 'folder', 'pdf', 'doc', 'image', etc.
+  size      String
+  path      String
+  status    String   @default("DRAFT")
+  createdAt DateTime @default(now())
+}
+
+model PracticeArea {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  icon      String
+  title     String
+  desc      String
+  createdAt DateTime @default(now())
+}
