@@ -33,7 +33,7 @@ const DashboardOverview = () => {
   };
 
   const advocateStats = data ? [
-    { title: "Active Cases", value: data.activeCasesCount, icon: "briefcase", color: "text-primary", bg: "bg-primary/10" },
+    { title: "Active Cases", value: data.activeCasesCount, icon: "work", color: "text-primary", bg: "bg-primary/10" },
     { title: "Upcoming Deadlines", value: data.upcomingDeadlines?.length, icon: "warning", color: "text-red-500", bg: "bg-red-50 dark:bg-red-900/20" },
     { title: "Recent Activity", value: data.activeCases?.length, icon: "history", color: "text-blue-400", bg: "bg-blue-50 dark:bg-blue-900/20" },
   ] : [];
@@ -84,38 +84,113 @@ const DashboardOverview = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Agenda */}
-        {role === 'SECRETARY' && data?.todayAppointments > 0 && (
-          <div className="bg-white dark:bg-[#1a202c] rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
+        {role === 'SECRETARY' && (
+          <div className="bg-white dark:bg-[#1a202c] rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col h-full">
             <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">Today's Agenda</h3>
               <button className="text-primary text-sm font-semibold hover:underline cursor-pointer">View Calendar</button>
             </div>
-            {/* This would be populated with actual appointment data */}
+            <div className="p-4 flex flex-col gap-3 overflow-y-auto max-h-[300px]">
+              {data?.todayAppointmentsList &&
+              data.todayAppointmentsList.length > 0 ? (
+                data.todayAppointmentsList.map((app) => (
+                  <div
+                    key={app.id}
+                    className="flex items-center p-3 rounded-lg border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                  >
+                    <div className="flex flex-col items-center justify-center w-12 h-12 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 mr-4">
+                      <span className="text-xs font-bold">
+                        {new Date(app.date).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-slate-900 dark:text-white">
+                        {app.client?.name || 'Unknown Client'}
+                      </p>
+                      <p className="text-xs text-slate-500">{app.purpose}</p>
+                    </div>
+                    <div className="ml-auto">
+                      <span
+                        className={`text-[10px] px-2 py-1 rounded-full font-bold ${
+                          app.status === 'CONFIRMED'
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-yellow-100 text-yellow-700'
+                        }`}
+                      >
+                        {app.status}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-slate-500">
+                  <p>No appointments today.</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
         {/* Financial Overview (Simplified Chart) */}
-        <div className="bg-white dark:bg-[#1a202c] rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Financial Overview</h3>
-              <p className="text-sm text-slate-500">Revenue (Last 6 Months)</p>
+        {role === 'ADVOCATE' && (
+          <div className="bg-white dark:bg-[#1a202c] rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                  Financial Overview
+                </h3>
+                <p className="text-sm text-slate-500">
+                  Revenue (Last 6 Months)
+                </p>
+              </div>
+              <div className="p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
+                <p className="text-xs text-slate-500 uppercase font-semibold">
+                  Total Revenue (YTD)
+                </p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
+                  {data?.totalRevenue
+                    ? data.totalRevenue.toLocaleString()
+                    : '0'}
+                </p>
+              </div>
             </div>
-            <div className="p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
-                <p className="text-xs text-slate-500 uppercase font-semibold">Total Revenue (YTD)</p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">42,500</p>
-            </div>
-          </div>
-          {/* CSS Bar Chart */}
-          <div className="flex items-end justify-between h-40 gap-2 w-full border-b border-slate-200 dark:border-slate-700 pb-2">
-            {[40, 65, 45, 80, 60, 90].map((h, i) => (
-                <div key={i} className="flex flex-col items-center gap-2 group w-full h-full justify-end">
-                    <div className="w-full max-w-[40px] bg-primary rounded-t-sm relative opacity-80 hover:opacity-100 transition-opacity" style={{ height: `${h}%` }}></div>
-                    <span className="text-xs text-slate-500 font-medium">{['May','Jun','Jul','Aug','Sep','Oct'][i]}</span>
+            {/* CSS Bar Chart */}
+            <div className="flex items-end justify-between h-40 gap-2 w-full border-b border-slate-200 dark:border-slate-700 pb-2">
+              {data?.monthlyRevenue ? (
+                data.monthlyRevenue.map((item, i) => {
+                  const max = Math.max(
+                    ...data.monthlyRevenue.map((d) => d.amount),
+                    1,
+                  );
+                  const height = (item.amount / max) * 100;
+                  return (
+                    <div
+                      key={i}
+                      className="flex flex-col items-center gap-2 group w-full h-full justify-end"
+                    >
+                      <div
+                        className="w-full max-w-[40px] bg-primary rounded-t-sm relative opacity-80 hover:opacity-100 transition-opacity"
+                        style={{ height: `${height}%` }}
+                      >
+                        {/* Tooltip could go here */}
+                      </div>
+                      <span className="text-xs text-slate-500 font-medium">
+                        {item.month}
+                      </span>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="w-full text-center py-10 text-slate-500">
+                  No data available
                 </div>
-            ))}
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* 4. Recent Activity Table */}
