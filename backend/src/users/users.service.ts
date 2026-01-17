@@ -33,6 +33,17 @@ export class UsersService {
     return this.prisma.user.findUnique({ where: { username } });
   }
 
+  async findByUsernameOrEmail(identifier: string) {
+    return this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { username: identifier },
+          { email: identifier },
+        ],
+      },
+    });
+  }
+
   update(id: string, updateUserDto: UpdateUserDto) {
     return `This action updates a #${id} user`;
   }
