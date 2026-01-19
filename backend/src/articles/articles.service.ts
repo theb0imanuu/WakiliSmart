@@ -38,10 +38,13 @@ export class ArticlesService {
   }
 
   update(id: string, updateArticleDto: UpdateArticleDto) {
-    return `This action updates a #${id} article`;
+    return this.prisma.article.update({
+      where: { id },
+      data: updateArticleDto,
+    });
   }
 
   remove(id: string) {
-    return `This action removes a #${id} article`;
+    return this.prisma.article.delete({ where: { id } });
   }
 }

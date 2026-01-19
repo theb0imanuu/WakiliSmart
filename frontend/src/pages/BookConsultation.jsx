@@ -130,7 +130,7 @@ const BookConsultation = () => {
                   {/* Full Name */}
                   <div className="flex flex-col gap-2 md:col-span-2">
                     <label className="text-sm font-bold text-gray-600 dark:text-gray-300">Full Name</label>
-                    <input name="name" value={formData.name} onChange={handleChange} type="text" placeholder="John Doe" className="h-12 px-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/50 text-navy-deep dark:text-white transition-all" />
+                    <input name="name" value={formData.name} onChange={handleChange} type="text" placeholder="John Doe" className="h-12 px-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/50 text-navy-deep dark:text-white transition-all" required />
                   </div>
                 </div>
 
@@ -138,13 +138,13 @@ const BookConsultation = () => {
                   {/* Email */}
                   <div className="flex flex-col gap-2">
                     <label className="text-sm font-bold text-gray-600 dark:text-gray-300">Email Address</label>
-                    <input name="email" value={formData.email} onChange={handleChange} type="email" placeholder="john@example.com" className="h-12 px-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/50 text-navy-deep dark:text-white transition-all" />
+                    <input name="email" value={formData.email} onChange={handleChange} type="email" placeholder="john@example.com" className="h-12 px-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/50 text-navy-deep dark:text-white transition-all" required />
                   </div>
                   
                   {/* Phone */}
                   <div className="flex flex-col gap-2">
                     <label className="text-sm font-bold text-gray-600 dark:text-gray-300">Phone Number</label>
-                    <input name="phone" value={formData.phone} onChange={handleChange} type="tel" placeholder="+254..." className="h-12 px-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/50 text-navy-deep dark:text-white transition-all" />
+                    <input name="phone" value={formData.phone} onChange={handleChange} type="tel" placeholder="+254..." className="h-12 px-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/50 text-navy-deep dark:text-white transition-all" required />
                   </div>
                 </div>
 
@@ -169,7 +169,10 @@ const BookConsultation = () => {
                   <textarea name="message" value={formData.message} onChange={handleChange} rows="4" placeholder="Briefly describe your legal issue..." className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/50 text-navy-deep dark:text-white transition-all resize-none"></textarea>
                 </div>
 
-                <button type="submit" className="h-12 mt-2 bg-primary hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg shadow-blue-900/10 transition-colors cursor-pointer">
+                <button
+                  type="submit"
+                  className="h-12 mt-2 bg-primary hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg shadow-blue-900/10 transition-colors cursor-pointer"
+                >
                   Request Appointment
                 </button>
               </form>

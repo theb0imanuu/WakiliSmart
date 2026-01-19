@@ -1,19 +1,23 @@
+
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Inquiry } from '@prisma/client';
+import { CreateInquiryDto } from './dto/create-inquiry.dto';
 
 @Injectable()
 export class InquiryService {
   constructor(private prisma: PrismaService) {}
 
-  async create(data: {
-    name: string;
-    email: string;
-    phone: string;
-    message: string;
-  }): Promise<Inquiry> {
+  async create(createInquiryDto: CreateInquiryDto): Promise<Inquiry> {
+    const { name, email, phone, message, urgency } = createInquiryDto;
     return this.prisma.inquiry.create({
-      data,
+      data: {
+        name,
+        email,
+        phone,
+        message,
+        urgency,
+      },
     });
   }
 
@@ -25,10 +29,11 @@ export class InquiryService {
     });
   }
 
-  async updateStatus(id: string, status: string): Promise<Inquiry> {
+  async updateStatus(id: string, status: string, clientId?: string): Promise<Inquiry> {
     return this.prisma.inquiry.update({
       where: { id },
-      data: { status },
+      data: { status, client_id: clientId },
     });
   }
 }
+

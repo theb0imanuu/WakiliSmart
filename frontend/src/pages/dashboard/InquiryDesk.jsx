@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -6,6 +7,7 @@ const InquiryDesk = () => {
   const [inquiries, setInquiries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   const fetchInquiries = async () => {
     try {
@@ -30,6 +32,29 @@ const InquiryDesk = () => {
       fetchInquiries();
     } catch (error) {
       alert('Failed to update status: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const handleConvertToClient = async (inquiry) => {
+    if (window.confirm('Are you sure you want to convert this inquiry to a client?')) {
+      try {
+        if (!inquiry.name || !inquiry.phone || !inquiry.email) {
+          alert('Cannot convert to client: name, email, and phone are required.');
+          return;
+        }
+        const clientResponse = await api.post('/clients', {
+          name: inquiry.name,
+          email: inquiry.email,
+          phone: inquiry.phone,
+        });
+        await api.patch(`/inquiry/${inquiry.id}/status`, {
+          status: 'CONVERTED',
+          clientId: clientResponse.data.id,
+        });
+        fetchInquiries();
+      } catch (error) {
+        alert('Failed to convert to client: ' + (error.response?.data?.message || error.message));
+      }
     }
   };
 
@@ -72,8 +97,16 @@ const InquiryDesk = () => {
             General
           </span>
           {item.status !== 'CONVERTED' && (
-            <button onClick={() => handleUpdateStatus(item.id, nextStatus[item.status])} className="opacity-0 group-hover:opacity-100 transition-opacity bg-primary text-white p-1.5 rounded-md hover:bg-blue-700 shadow-sm">
-              <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+            <button onClick={() => handleConvertToClient(item)} className="opacity-0 group-hover:opacity-100 transition-opacity bg-primary text-white p-1.5 rounded-md hover:bg-blue-700 shadow-sm">
+              <span className="material-symbols-outlined text-[16px]">person_add</span>
+            </button>
+          )}
+          {item.status === 'CONVERTED' && (
+            <button
+              onClick={() => navigate(`/dashboard/calendar/new?clientId=${item.client_id}`)}
+              className="opacity-0 group-hover:opacity-100 transition-opacity bg-green-600 text-white p-1.5 rounded-md hover:bg-green-700 shadow-sm"
+            >
+              <span className="material-symbols-outlined text-[16px]">event</span>
             </button>
           )}
         </div>

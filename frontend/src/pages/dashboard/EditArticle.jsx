@@ -1,27 +1,42 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../utils/api';
 
-const CreateArticle = () => {
+const EditArticle = () => {
+  const { id } = useParams();
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
   const [content, setContent] = useState('');
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const fetchArticle = async () => {
+      try {
+        const response = await api.get(`/articles/${id}`);
+        setTitle(response.data.title);
+        setCategory(response.data.category);
+        setContent(response.data.content);
+      } catch (error) {
+        alert('Failed to fetch article: ' + (error.response?.data?.message || error.message));
+      }
+    };
+    fetchArticle();
+  }, [id]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/articles', { title, category, content });
-      alert('Article posted successfully!');
-      navigate('/dashboard');
+      await api.patch(`/articles/${id}`, { title, category, content });
+      alert('Article updated successfully!');
+      navigate(`/articles/${id}`);
     } catch (error) {
-      alert('Failed to post article: ' + (error.response?.data?.message || error.message));
+      alert('Failed to update article: ' + (error.response?.data?.message || error.message));
     }
   };
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-navy-deep dark:text-white mb-8">Post New Article</h1>
+      <h1 className="text-3xl font-bold text-navy-deep dark:text-white mb-8">Edit Article</h1>
 
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
@@ -58,7 +73,7 @@ const CreateArticle = () => {
           </div>
 
           <button className="bg-primary hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg self-start transition-colors cursor-pointer">
-            Publish Article
+            Update Article
           </button>
         </form>
       </div>
@@ -66,4 +81,4 @@ const CreateArticle = () => {
   );
 };
 
-export default CreateArticle;
+export default EditArticle;

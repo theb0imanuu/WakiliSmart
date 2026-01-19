@@ -11,14 +11,17 @@ generator client {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  username      String   @unique
+  id            String    @id @default(cuid())
+  email         String    @unique
+  username      String    @unique
   name          String
   password_hash String
-  role          String   // 'SECRETARY', 'ADVOCATE'
-  created_at    DateTime @default(now())
+  role          String    // 'SECRETARY', 'ADVOCATE'
+  created_at    DateTime  @default(now())
   articles      Article[]
+
+  passwordResetToken       String?
+  passwordResetExpires     DateTime?
 }
 
 model Client {
@@ -42,6 +45,7 @@ model Inquiry {
   email       String?
   phone       String?
   message     String?
+  urgency     String?
 
   client_id   String?
   client      Client?  @relation(fields: [client_id], references: [id])

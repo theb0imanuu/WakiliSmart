@@ -6,6 +6,7 @@ const CaseManagement = () => {
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchCases = async () => {
@@ -22,6 +23,14 @@ const CaseManagement = () => {
 
     fetchCases();
   }, []);
+
+  const filteredCases = cases.filter(
+    (c) =>
+      c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.case_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.client.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
 
   const getInitials = (name) => {
     if (!name) return 'U';

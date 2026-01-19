@@ -3,21 +3,21 @@ import { Link, useNavigate } from 'react-router-dom';
 import loginImg from '../assets/login.webp';
 import logoImg from '../assets/logo.svg';
 import api from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 
 const StaffLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       const response = await api.post('/auth/login', { username: email, password });
       const { access_token, role, username } = response.data;
-      localStorage.setItem('token', access_token);
-      localStorage.setItem('role', role);
-      localStorage.setItem('username', username);
+      login(access_token, role, username);
       navigate('/dashboard');
     } catch (error) {
       alert('Login failed: ' + (error.response?.data?.message || error.message));
@@ -116,7 +116,7 @@ const StaffLogin = () => {
               <div className="flex flex-col gap-2">
                 <div className="flex justify-between items-center">
                   <label className="text-navy-deep dark:text-white text-sm font-medium leading-normal" htmlFor="password">Password</label>
-                  <a className="text-primary text-sm font-medium hover:underline cursor-pointer">Forgot Password?</a>
+                  <Link to="/forgot-password" className="text-primary text-sm font-medium hover:underline cursor-pointer">Forgot Password?</Link>
                 </div>
                 <div className="relative flex items-center">
                   <input

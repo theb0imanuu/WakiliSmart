@@ -23,6 +23,16 @@ import CreateInvoice from '../pages/dashboard/CreateInvoice';
 import DocumentRepository from '../pages/dashboard/DocumentRepository';
 import InquiryDesk from '../pages/dashboard/InquiryDesk';
 import CreateArticle from '../pages/dashboard/CreateArticle';
+import EditArticle from '../pages/dashboard/EditArticle';
+import Unauthorized from '../pages/Unauthorized';
+import ForgotPassword from '../pages/ForgotPassword';
+import ResetPassword from '../pages/ResetPassword';
+import PracticeAreasDashboard from '../pages/dashboard/PracticeAreasDashboard';
+import CreatePracticeArea from '../pages/dashboard/CreatePracticeArea';
+import EditPracticeArea from '../pages/dashboard/EditPracticeArea';
+import SecretaryLayout from '../components/secretary/SecretaryLayout';
+import SecretaryDashboard from '../components/secretary/dashboard/SecretaryDashboard';
+import InquiryDesk from '../components/secretary/scheduling/InquiryDesk';
 
 const Router = () => {
   return (
@@ -34,10 +44,13 @@ const Router = () => {
           <Route path="book-consultation" element={<BookConsultation />} />
           <Route path="practice-areas" element={<PracticeAreas />} />
           <Route path="practice-areas/:slug" element={<PracticeAreaDetail />} />
-          <Route path="knowledge-hub" element={<KnowledgeHub />} />       
-          <Route path="knowledge-hub/:id" element={<ArticleDetail />} />   
+          <Route path="articles" element={<KnowledgeHub />} />
+          <Route path="articles/:id" element={<ArticleDetail />} />
         </Route>
         <Route path="staff-login" element={<StaffLogin />} />
+        <Route path="forgot-password" element={<ForgotPassword />} />
+        <Route path="reset-password" element={<ResetPassword />} />
+        <Route path="unauthorized" element={<Unauthorized />} />
         <Route path="/dashboard" element={<RequireAuth allowedRoles={['ADVOCATE', 'SECRETARY']} />}>
           <Route element={<DashboardLayout />}>
             <Route index element={<DashboardOverview />} />
@@ -51,10 +64,24 @@ const Router = () => {
             <Route path="billing/new" element={<CreateInvoice />} />
             <Route path="documents" element={<DocumentRepository />} />
             <Route path="inquiries" element={<InquiryDesk />} />
+            <Route path="practice-areas" element={<RequireAuth allowedRoles={['ADVOCATE']} />}>
+              <Route index element={<PracticeAreasDashboard />} />
+              <Route path="new" element={<CreatePracticeArea />} />
+              <Route path=":id/edit" element={<EditPracticeArea />} />
+            </Route>
             <Route path="create-article" element={<RequireAuth allowedRoles={['ADVOCATE']} />}>
               <Route index element={<CreateArticle />} />
             </Route>
+            <Route path="articles/:id/edit" element={<RequireAuth allowedRoles={['ADVOCATE']} />}>
+              <Route index element={<EditArticle />} />
+            </Route>
           </Route>
+        </Route>
+        <Route path="/secretary" element={<RequireAuth allowedRoles={['SECRETARY']} />}>
+            <Route element={<SecretaryLayout />}>
+                <Route path="dashboard" element={<SecretaryDashboard />} />
+                <Route path="scheduling" element={<InquiryDesk />} />
+            </Route>
         </Route>
       </Routes>
     </BrowserRouter>
