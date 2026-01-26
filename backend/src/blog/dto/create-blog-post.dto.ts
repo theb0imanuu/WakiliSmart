@@ -1,27 +1,23 @@
 import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 
-export class CreateCaseDto {
-  @IsString()
-  @IsNotEmpty()
-  caseNumber: string;
-
+export class CreateBlogPostDto {
   @IsString()
   @IsNotEmpty()
   title: string;
 
   @IsString()
   @IsNotEmpty()
-  caseType: string;
+  category: string;
 
   @IsString()
   @IsNotEmpty()
-  filingDate: string; // ISO date
+  content: string;
 
   @IsString()
   @IsOptional()
-  notes?: string;
+  bannerPath?: string;
 
   @IsString()
-  @IsNotEmpty()
-  clientId: string;
+  @IsOptional()
+  authorId: string;
 }

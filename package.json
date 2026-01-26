@@ -1,8 +1,13 @@
 {
-  "devDependencies": {
-    "prisma": "^5.22.0"
-  },
-  "dependencies": {
-    "@prisma/client": "^5.22.0"
+  "name": "wakilismart",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "install:all": "npm install && npm install -w backend && npm install -w frontend",
+    "start:backend": "npm run start:dev -w backend",
+    "start:frontend": "npm run dev -w frontend"
   }
 }

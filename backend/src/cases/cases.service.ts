@@ -7,16 +7,29 @@ import { PrismaService } from '../prisma/prisma.service';
 export class CasesService {
   constructor(private prisma: PrismaService) {}
 
-  create(createCaseDto: CreateCaseDto) {
+  async create(createCaseDto: CreateCaseDto) {
+    // Expect clientId to be present in DTO
     return this.prisma.case.create({
-      data: createCaseDto,
+      data: {
+        case_number: createCaseDto.caseNumber,
+        title: createCaseDto.title,
+        case_type: createCaseDto.caseType,
+        filing_date: new Date(createCaseDto.filingDate),
+        notes: createCaseDto.notes,
+        client: {
+            connect: { id: createCaseDto.clientId }
+        }
+      },
     });
   }
 
-  findAll(clientId?: string) {
+  findAll(query?: string) {
     const where: any = {};
-    if (clientId) {
-      where.client_id = clientId;
+    if (query) {
+      where.OR = [
+        { case_number: { contains: query } },
+        { client: { name: { contains: query } } }
+      ];
     }
 
     return this.prisma.case.findMany({
@@ -32,14 +45,24 @@ export class CasesService {
       where: { id },
       include: {
         client: true,
+        invoices: true,
+        Appointment: true
       },
     });
   }
 
   update(id: string, updateCaseDto: UpdateCaseDto) {
+    const data: any = { ...updateCaseDto };
+    if (updateCaseDto.filingDate) {
+        data.filing_date = new Date(updateCaseDto.filingDate);
+    }
+    delete data.filingDate;
+    delete data.clientId; // Usually shouldn't change client
+    delete data.caseNumber;
+
     return this.prisma.case.update({
       where: { id },
-      data: updateCaseDto,
+      data: data,
     });
   }
 

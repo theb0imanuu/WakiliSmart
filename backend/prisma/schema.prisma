@@ -3,7 +3,7 @@
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./wakili.db"
+  url      = "file:../wakili.db"
 }
 
 generator client {
@@ -11,14 +11,14 @@ generator client {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  username      String    @unique
+  id            String     @id @default(cuid())
+  email         String     @unique
+  username      String     @unique
   name          String
   password_hash String
-  role          String    // 'SECRETARY', 'ADVOCATE'
-  created_at    DateTime  @default(now())
-  articles      Article[]
+  role          String     // 'SECRETARY', 'ADVOCATE'
+  created_at    DateTime   @default(now())
+  blogPosts     BlogPost[]
 
   passwordResetToken       String?
   passwordResetExpires     DateTime?
@@ -118,17 +118,17 @@ model Payment {
   invoice               Invoice       @relation(fields: [invoice_id], references: [id])
 }
 
-model Article {
-  id            String   @id @default(cuid())
-  title         String
-  category      String
-  content       String
-  headlineImage String?
-  status        String   @default("DRAFT")
+model BlogPost {
+  id          String   @id @default(cuid())
+  title       String
+  category    String
+  content     String
+  bannerPath  String?
+  status      String   @default("DRAFT")
 
-  author_id     String
-  author        User     @relation(fields: [author_id], references: [id])
-  created_at    DateTime @default(now())
+  author_id   String
+  author      User     @relation(fields: [author_id], references: [id])
+  created_at  DateTime @default(now())
 }
 
 model Document {
