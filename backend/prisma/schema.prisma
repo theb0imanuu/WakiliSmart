@@ -1,0 +1,358 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://neondb_owner:npg_uNyGbR4drQA1@ep-empty-mouse-aigflx1i-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+}
+
+model User {
+  id               Int        @id @default(autoincrement())
+  username         String?    @unique
+  passwordHash     String?
+  fullName         String
+  email            String     @unique
+  phone            String?
+  role             UserRole
+  isActive         Boolean    @default(true)
+  lastLoginAt      DateTime?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  refreshToken     String?
+  settings         Json       @default("{}")
+  auditLogs        AuditLog[]
+  blogPosts        BlogPost[] @relation("BlogPostAuthor")
+  createdCases     Case[]     @relation("CaseCreatedBy")
+  approvedInvoices Invoice[]  @relation("InvoiceApprovedBy")
+
+  @@map("users")
+}
+
+model Client {
+  id              Int           @id @default(autoincrement())
+  clientId        String        @unique
+  fullName        String
+  phoneNumber     String        @unique
+  email           String?
+  physicalAddress String?
+  idNumber        String?
+  dateOfBirth     DateTime?
+  occupation      String?
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  appointments    Appointment[]
+  cases           Case[]
+  invoices        Invoice[]
+
+  @@map("clients")
+}
+
+model Case {
+  id              Int            @id @default(autoincrement())
+  caseNumber      String         @unique
+  title           String
+  caseType        CaseType
+  subType         String?
+  clientId        Int
+  opposingParty   String?
+  opposingCounsel String?
+  courtTribunal   String
+  courtCaseNumber String?
+  dateOpened      DateTime       @default(now())
+  filingDate      DateTime?
+  hearingDate     DateTime?
+  dateClosed      DateTime?
+  status          CaseStatus     @default(OPEN)
+  priority        String         @default("NORMAL")
+  description     String?
+  legalIssues     String?
+  desiredOutcome  String?
+  retainerAmount  Decimal?       @db.Decimal(10, 2)
+  createdById     Int
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  appointments    Appointment[]
+  activities      CaseActivity[]
+  client          Client         @relation(fields: [clientId], references: [id])
+  createdBy       User           @relation("CaseCreatedBy", fields: [createdById], references: [id])
+  disbursements   Disbursement[]
+  documents       Document[]
+  invoices        Invoice[]
+  timeEntries     TimeEntry[]
+
+  @@map("cases")
+}
+
+model Appointment {
+  id              Int               @id @default(autoincrement())
+  tempClientName  String?
+  tempClientPhone String?
+  tempClientEmail String?
+  clientId        Int?
+  caseId          Int?
+  scheduledDate   DateTime
+  durationMinutes Int               @default(30)
+  purpose         String?
+  notes           String?
+  status          AppointmentStatus @default(PENDING)
+  isCourtDate     Boolean           @default(false)
+  courtName       String?
+  confirmedAt     DateTime?
+  confirmedById   Int?
+  reminderSent    Boolean           @default(false)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  case            Case?             @relation(fields: [caseId], references: [id])
+  client          Client?           @relation(fields: [clientId], references: [id])
+
+  @@map("appointments")
+}
+
+model TimeEntry {
+  id              Int      @id @default(autoincrement())
+  caseId          Int
+  entryDate       DateTime
+  durationMinutes Int
+  activityType    String
+  description     String
+  hourlyRate      Decimal  @db.Decimal(10, 2)
+  calculatedValue Decimal  @db.Decimal(10, 2)
+  isBilled        Boolean  @default(false)
+  invoiceId       Int?
+  createdAt       DateTime @default(now())
+  case            Case     @relation(fields: [caseId], references: [id])
+
+  @@map("time_entries")
+}
+
+model Disbursement {
+  id               Int      @id @default(autoincrement())
+  caseId           Int
+  disbursementDate DateTime
+  category         String
+  description      String
+  amount           Decimal  @db.Decimal(10, 2)
+  receiptRef       String?
+  receiptImagePath String?
+  isBilled         Boolean  @default(false)
+  invoiceId        Int?
+  createdAt        DateTime @default(now())
+  case             Case     @relation(fields: [caseId], references: [id])
+
+  @@map("disbursements")
+}
+
+model Invoice {
+  id              Int               @id @default(autoincrement())
+  invoiceNumber   String            @unique
+  caseId          Int
+  clientId        Int
+  issueDate       DateTime          @default(now())
+  dueDate         DateTime?
+  subtotal        Decimal           @db.Decimal(10, 2)
+  taxAmount       Decimal           @default(0) @db.Decimal(10, 2)
+  totalAmount     Decimal           @db.Decimal(10, 2)
+  amountPaid      Decimal           @default(0) @db.Decimal(10, 2)
+  balanceDue      Decimal           @db.Decimal(10, 2)
+  status          InvoiceStatus     @default(DRAFT)
+  submittedAt     DateTime?
+  approvedAt      DateTime?
+  approvedById    Int?
+  sentAt          DateTime?
+  notes           String?
+  rejectionReason String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  lineItems       InvoiceLineItem[]
+  approvedBy      User?             @relation("InvoiceApprovedBy", fields: [approvedById], references: [id])
+  case            Case              @relation(fields: [caseId], references: [id])
+  client          Client            @relation(fields: [clientId], references: [id])
+  payments        Payment[]
+
+  @@map("invoices")
+}
+
+model InvoiceLineItem {
+  id             Int     @id @default(autoincrement())
+  invoiceId      Int
+  itemType       String
+  description    String
+  quantity       Decimal @db.Decimal(10, 2)
+  unitPrice      Decimal @db.Decimal(10, 2)
+  amount         Decimal @db.Decimal(10, 2)
+  timeEntryId    Int?
+  disbursementId Int?
+  invoice        Invoice @relation(fields: [invoiceId], references: [id])
+
+  @@map("invoice_line_items")
+}
+
+model Payment {
+  id          Int           @id @default(autoincrement())
+  invoiceId   Int
+  paymentDate DateTime
+  amount      Decimal       @db.Decimal(10, 2)
+  method      PaymentMethod
+  reference   String?
+  receivedBy  String?
+  notes       String?
+  createdAt   DateTime      @default(now())
+  invoice     Invoice       @relation(fields: [invoiceId], references: [id])
+
+  @@map("payments")
+}
+
+model Document {
+  id           Int            @id @default(autoincrement())
+  caseId       Int
+  fileName     String
+  originalName String
+  filePath     String
+  fileSize     Int
+  mimeType     String
+  category     String
+  description  String?
+  uploadedBy   String?
+  uploadedAt   DateTime       @default(now())
+  status       DocumentStatus @default(DRAFTING)
+  case         Case           @relation(fields: [caseId], references: [id])
+
+  @@map("documents")
+}
+
+model CaseActivity {
+  id              Int      @id @default(autoincrement())
+  caseId          Int
+  activityType    String
+  activityDate    DateTime
+  description     String
+  durationMinutes Int?
+  createdAt       DateTime @default(now())
+  createdBy       String?
+  case            Case     @relation(fields: [caseId], references: [id])
+
+  @@map("case_activities")
+}
+
+model FeeSchedule {
+  id               Int       @id @default(autoincrement())
+  caseType         CaseType
+  subType          String?
+  statutoryMinimum Decimal   @db.Decimal(10, 2)
+  firmStandardRate Decimal   @db.Decimal(10, 2)
+  premiumRate      Decimal   @db.Decimal(10, 2)
+  isHourly         Boolean   @default(true)
+  effectiveFrom    DateTime  @default(now())
+  effectiveTo      DateTime?
+  notes            String?
+
+  @@unique([caseType, subType, effectiveFrom])
+  @@map("fee_schedules")
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  timestamp  DateTime @default(now())
+  userId     Int?
+  username   String
+  action     String
+  entityType String?
+  entityId   Int?
+  details    String?
+  ipAddress  String?
+  user       User?    @relation(fields: [userId], references: [id])
+
+  @@index([timestamp])
+  @@index([userId])
+  @@index([action])
+  @@map("audit_logs")
+}
+
+model SystemSetting {
+  id           Int      @id @default(autoincrement())
+  settingKey   String   @unique
+  settingValue String
+  description  String?
+  updatedAt    DateTime @updatedAt
+
+  @@map("system_settings")
+}
+
+model BlogPost {
+  id          Int        @id @default(autoincrement())
+  title       String
+  slug        String     @unique
+  content     String
+  imageUrl    String?
+  status      BlogStatus @default(DRAFT)
+  tags        Json       @default("[]")
+  authorId    Int
+  publishedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  author      User       @relation("BlogPostAuthor", fields: [authorId], references: [id])
+
+  @@map("blog_posts")
+}
+
+enum UserRole {
+  ADVOCATE
+  SECRETARY
+  ADMIN
+}
+
+enum CaseStatus {
+  OPEN
+  ACTIVE
+  PENDING
+  CLOSED
+  ON_HOLD
+}
+
+enum CaseType {
+  CIVIL
+  CRIMINAL
+  CONVEYANCING
+  COMMERCIAL
+  FAMILY
+  OTHER
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  RESCHEDULED
+  CANCELLED
+  COMPLETED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  SENT
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  VOIDED
+}
+
+enum PaymentMethod {
+  MPESA
+  CASH
+  CHEQUE
+  BANK_TRANSFER
+}
+
+enum DocumentStatus {
+  DRAFTING
+  AWAITING_SIG
+  FILED
+}
+
+enum BlogStatus {
+  DRAFT
+  PUBLISHED
+}

@@ -1,0 +1,7 @@
+{
+  "name": "WakiliSmart ERP",
+  "description": "A comprehensive legal practice management system for Kenyan law firms, featuring client intake, case tracking, billing, and scheduling.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

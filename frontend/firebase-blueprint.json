@@ -1,0 +1,120 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "System users with roles (ADVOCATE, SECRETARY, ADMIN)",
+      "type": "object",
+      "properties": {
+        "username": { "type": "string" },
+        "fullName": { "type": "string" },
+        "role": { "type": "string", "enum": ["ADVOCATE", "SECRETARY", "ADMIN"] },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "lastLoginAt": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["username", "fullName", "role", "isActive"]
+    },
+    "Client": {
+      "title": "Client",
+      "description": "Legal clients of the firm",
+      "type": "object",
+      "properties": {
+        "clientNumber": { "type": "string" },
+        "fullName": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "address": { "type": "string" },
+        "idNumber": { "type": "string" },
+        "dateOfBirth": { "type": "string", "format": "date" },
+        "occupation": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["clientNumber", "fullName", "phone"]
+    },
+    "Case": {
+      "title": "Case",
+      "description": "Legal matters managed by the firm",
+      "type": "object",
+      "properties": {
+        "caseNumber": { "type": "string" },
+        "title": { "type": "string" },
+        "caseType": { "type": "string", "enum": ["CIVIL", "CRIMINAL", "CONVEYANCING", "COMMERCIAL", "FAMILY", "OTHER"] },
+        "status": { "type": "string", "enum": ["OPEN", "ACTIVE", "PENDING", "ON_HOLD", "CLOSED"] },
+        "priority": { "type": "string", "enum": ["LOW", "NORMAL", "HIGH", "URGENT"] },
+        "clientId": { "type": "string" },
+        "opposingParty": { "type": "string" },
+        "court": { "type": "string" },
+        "dateOpened": { "type": "string", "format": "date-time" },
+        "createdById": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["caseNumber", "title", "caseType", "clientId", "createdById"]
+    },
+    "Appointment": {
+      "title": "Appointment",
+      "description": "Scheduled consultations and court dates",
+      "type": "object",
+      "properties": {
+        "appointmentNumber": { "type": "string" },
+        "clientId": { "type": "string" },
+        "prospectName": { "type": "string" },
+        "prospectPhone": { "type": "string" },
+        "title": { "type": "string" },
+        "appointmentType": { "type": "string", "enum": ["CONSULTATION", "COURT_DATE", "CLIENT_MEETING", "DEPOSITION", "MEDIATION", "OTHER"] },
+        "startTime": { "type": "string", "format": "date-time" },
+        "endTime": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["PENDING", "CONFIRMED", "RESCHEDULED", "CANCELLED", "COMPLETED", "NO_SHOW"] },
+        "createdById": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["appointmentNumber", "title", "startTime", "endTime", "status", "createdById"]
+    },
+    "Invoice": {
+      "title": "Invoice",
+      "description": "Billing documents for clients",
+      "type": "object",
+      "properties": {
+        "invoiceNumber": { "type": "string" },
+        "caseId": { "type": "string" },
+        "clientId": { "type": "string" },
+        "issueDate": { "type": "string", "format": "date-time" },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["DRAFT", "PENDING_APPROVAL", "APPROVED", "SENT", "PARTIALLY_PAID", "PAID", "OVERDUE", "VOID"] },
+        "totalAmount": { "type": "number" },
+        "balanceDue": { "type": "number" },
+        "createdById": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["invoiceNumber", "caseId", "clientId", "issueDate", "dueDate", "status", "totalAmount", "balanceDue", "createdById"]
+    },
+    "BlogPost": {
+      "title": "BlogPost",
+      "description": "Legal articles and firm updates",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "status": { "type": "string", "enum": ["DRAFT", "PUBLISHED"] },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "imageUrl": { "type": "string" },
+        "publishedAt": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "content", "authorId", "status"]
+    }
+  },
+  "firestore": {
+    "users": { "schema": "User", "description": "Collection of system users" },
+    "clients": { "schema": "Client", "description": "Collection of legal clients" },
+    "cases": { "schema": "Case", "description": "Collection of legal matters" },
+    "appointments": { "schema": "Appointment", "description": "Collection of scheduled events" },
+    "invoices": { "schema": "Invoice", "description": "Collection of billing invoices" },
+    "blog_posts": { "schema": "BlogPost", "description": "Collection of legal articles" }
+  }
+}

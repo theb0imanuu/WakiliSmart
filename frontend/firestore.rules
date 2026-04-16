@@ -1,0 +1,205 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Fields:
+    //   - username: string (required)
+    //   - fullName: string (required)
+    //   - role: string (required, enum: ADVOCATE, SECRETARY, ADMIN)
+    //   - email: string (optional, format: email)
+    //   - phone: string (optional)
+    //   - isActive: bool (required)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: clients
+    // Fields:
+    //   - clientNumber: string (required)
+    //   - fullName: string (required)
+    //   - phone: string (required)
+    //   - email: string (optional)
+    //   - address: string (optional)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: cases
+    // Fields:
+    //   - caseNumber: string (required)
+    //   - title: string (required)
+    //   - caseType: string (required)
+    //   - status: string (required)
+    //   - clientId: string (required)
+    //   - createdById: string (required)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: appointments
+    // Fields:
+    //   - appointmentNumber: string (required)
+    //   - title: string (required)
+    //   - startTime: timestamp (required)
+    //   - endTime: timestamp (required)
+    //   - status: string (required)
+    //   - createdById: string (required)
+    //
+    // Collection: invoices
+    // Fields:
+    //   - invoiceNumber: string (required)
+    //   - caseId: string (required)
+    //   - clientId: string (required)
+    //   - totalAmount: number (required)
+    //   - balanceDue: number (required)
+    //   - status: string (required)
+    //   - createdById: string (required)
+    //
+    // Collection: blog_posts
+    // Fields:
+    //   - title: string (required)
+    //   - content: string (required)
+    //   - authorId: string (required)
+    //   - authorName: string (optional)
+    //   - status: string (required, enum: DRAFT, PUBLISHED)
+    //   - tags: list (optional)
+    //   - imageUrl: string (optional)
+    //   - publishedAt: timestamp (optional)
+    //   - createdAt: timestamp (required)
+    //   - updatedAt: timestamp (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN' ||
+        (request.auth.token.email == "emmwaniki2004@gmail.com" && request.auth.token.email_verified == true)
+      );
+    }
+
+    function isSecretary() {
+      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'SECRETARY';
+    }
+
+    function isAdvocate() {
+      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADVOCATE';
+    }
+
+    function isStaff() {
+      return isAdmin() || isSecretary() || isAdvocate();
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    // Users Collection
+    match /users/{userId} {
+      function isValidUser(data) {
+        return data.username is string && data.username.size() >= 3 &&
+               data.fullName is string && data.fullName.size() >= 3 &&
+               data.role in ['ADVOCATE', 'SECRETARY', 'ADMIN'] &&
+               data.isActive is bool &&
+               (!('email' in data) || isValidEmail(data.email));
+      }
+
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isStaff());
+      
+      // Only admins can create or update roles, or users can update their own non-role info
+      allow create: if isAuthenticated() && isValidUser(request.resource.data) && (isAdmin() || request.auth.uid == userId);
+      allow update: if isAuthenticated() && isValidUser(request.resource.data) && (
+        isAdmin() || 
+        (request.auth.uid == userId && request.resource.data.role == resource.data.role)
+      );
+    }
+
+    // Clients Collection
+    match /clients/{clientId} {
+      function isValidClient(data) {
+        return data.clientNumber is string &&
+               data.fullName is string && data.fullName.size() >= 3 &&
+               data.phone is string && data.phone.size() >= 10;
+      }
+
+      allow read: if isStaff();
+      allow create, update: if isStaff() && isValidClient(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    // Cases Collection
+    match /cases/{caseId} {
+      function isValidCase(data) {
+        return data.caseNumber is string &&
+               data.title is string && data.title.size() >= 3 &&
+               data.caseType in ['CIVIL', 'CRIMINAL', 'CONVEYANCING', 'COMMERCIAL', 'FAMILY', 'OTHER'] &&
+               data.status in ['OPEN', 'ACTIVE', 'PENDING', 'ON_HOLD', 'CLOSED'] &&
+               data.clientId is string &&
+               data.createdById is string;
+      }
+
+      allow read: if isStaff();
+      allow create, update: if isStaff() && isValidCase(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    // Appointments Collection
+    match /appointments/{appointmentId} {
+      function isValidAppointment(data) {
+        return data.appointmentNumber is string &&
+               data.title is string && data.title.size() >= 3 &&
+               data.startTime is timestamp &&
+               data.endTime is timestamp &&
+               data.status in ['PENDING', 'CONFIRMED', 'RESCHEDULED', 'CANCELLED', 'COMPLETED', 'NO_SHOW'];
+      }
+
+      // Public can create appointments (bookings)
+      allow create: if true; 
+      allow read, update: if isStaff();
+      allow delete: if isAdmin();
+    }
+
+    // Invoices Collection
+    match /invoices/{invoiceId} {
+      function isValidInvoice(data) {
+        return data.invoiceNumber is string &&
+               data.caseId is string &&
+               data.clientId is string &&
+               data.totalAmount is number &&
+               data.balanceDue is number &&
+               data.status in ['DRAFT', 'PENDING_APPROVAL', 'APPROVED', 'SENT', 'PARTIALLY_PAID', 'PAID', 'OVERDUE', 'VOID'];
+      }
+
+      allow read: if isStaff();
+      allow create, update: if isStaff() && isValidInvoice(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    // Blog Posts Collection
+    match /blog_posts/{postId} {
+      function isValidPost(data) {
+        return data.title is string && data.title.size() >= 3 &&
+               data.content is string && data.content.size() >= 10 &&
+               data.authorId is string &&
+               data.status in ['DRAFT', 'PUBLISHED'];
+      }
+
+      allow read: if (exists(resource) && resource.data.status == 'PUBLISHED') || isStaff();
+      allow create, update: if isAdmin() && isValidPost(request.resource.data);
+      allow delete: if isAdmin();
+    }
+  }
+}
